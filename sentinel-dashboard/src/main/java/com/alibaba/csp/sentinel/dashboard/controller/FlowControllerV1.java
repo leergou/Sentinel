@@ -81,6 +81,7 @@ public class FlowControllerV1 {
             return Result.ofFail(-1, "port can't be null");
         }
         try {
+            //通过httpclient 异步查询使用Sentinel限流的服务器内存中的flow配置
             List<FlowRuleEntity> rules = sentinelApiClient.fetchFlowRuleOfMachine(app, ip, port);
             rules = repository.saveAll(rules);
             return Result.ofSuccess(rules);
@@ -137,6 +138,12 @@ public class FlowControllerV1 {
         return null;
     }
 
+    /**
+     * 新增流控相关配置入口
+     * @param request
+     * @param entity
+     * @return
+     */
     @PostMapping("/rule")
     public Result<FlowRuleEntity> apiAddFlowRule(HttpServletRequest request, @RequestBody FlowRuleEntity entity) {
         AuthUser authUser = authService.getAuthUser(request);

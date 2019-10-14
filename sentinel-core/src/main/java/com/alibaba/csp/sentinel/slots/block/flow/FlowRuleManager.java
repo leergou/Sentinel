@@ -95,7 +95,37 @@ public class FlowRuleManager {
      * @param rules new rules to load.
      */
     public static void loadRules(List<FlowRule> rules) {
-        currentProperty.updateValue(rules);
+        List<FlowRule> flowRuleList=doAnalysisLimitApp(rules);
+        currentProperty.updateValue(flowRuleList);
+    }
+
+    /**
+     * 将 多个来源打散
+     * @param rules dashboard中录入的规则
+     * @return 优化后的flowRule
+     */
+    private static List<FlowRule> doAnalysisLimitApp(List<FlowRule> rules) {
+        List<FlowRule> flowRuleList=new ArrayList<>();
+        for(FlowRule rule:rules) {
+            String[] concreteLimitAppArray = rule.getLimitApp().split(",");
+            for(String limitApp:concreteLimitAppArray){
+                FlowRule currentRule=new FlowRule();
+                currentRule.setLimitApp(limitApp);
+                currentRule.setResource(rule.getResource());
+                currentRule.setClusterConfig(rule.getClusterConfig());
+                currentRule.setControlBehavior(rule.getControlBehavior());
+                currentRule.setCount(rule.getCount());
+                currentRule.setGrade(rule.getGrade());
+                currentRule.setMaxQueueingTimeMs(rule.getMaxQueueingTimeMs());
+                currentRule.setRater(rule.getRater());
+                currentRule.setRefResource(rule.getRefResource());
+                currentRule.setStrategy(rule.getStrategy());
+                currentRule.setWarmUpPeriodSec(rule.getWarmUpPeriodSec());
+                flowRuleList.add(currentRule);
+            }
+        }
+
+        return flowRuleList;
     }
 
     static Map<String, List<FlowRule>> getFlowRuleMap() {
@@ -118,11 +148,13 @@ public class FlowRuleManager {
                 if (origin.equals(rule.getLimitApp())) {
                     return false;
                 }
+//                return doCheckLimitApp(origin,rule);
             }
         }
 
         return true;
     }
+
 
     private static final class FlowPropertyListener implements PropertyListener<List<FlowRule>> {
 
