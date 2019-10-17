@@ -32,6 +32,9 @@ public final class HeartbeatSenderProvider {
     }
 
     private static void resolveInstance() {
+        /*
+          此处获取的是Sentinel-transport-simple-http中的com.alibaba.csp.sentinel.transport.heartbeat.SimpleHttpHeartbeatSender
+         */
         HeartbeatSender resolved = SpiLoader.loadHighestPriorityInstance(HeartbeatSender.class);
         if (resolved == null) {
             RecordLog.warn("[HeartbeatSenderProvider] WARN: No existing HeartbeatSender found");

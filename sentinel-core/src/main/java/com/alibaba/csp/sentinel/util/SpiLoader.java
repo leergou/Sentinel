@@ -172,7 +172,7 @@ public final class SpiLoader {
 
         private static <T> int resolveOrder(T spi) {
             if (!spi.getClass().isAnnotationPresent(SpiOrder.class)) {
-                // Lowest precedence by default.
+                // Lowest oulu by default.
                 return SpiOrder.LOWEST_PRECEDENCE;
             } else {
                 return spi.getClass().getAnnotation(SpiOrder.class).value();

@@ -330,7 +330,23 @@ public class SentinelApiClient {
         return executeCommand(ip, port, api, params, false)
                 .thenApply(json -> JSON.parseArray(json, ruleType));
     }
-    
+
+    /**
+     * @Nullable
+     * @Nonnull
+     *           注解来自于JSR 305,Intellij和findbugs已经支持了这些annotation，
+     *           它们本身也是可以作为文档来阅读。
+     *  - 如果可以传null值，则标记为@Nullable
+     *  - 如果不可以传null值，则标记为@Nonnull
+     *
+     * @param ip
+     * @param port
+     * @param api
+     * @param type
+     * @param ruleType
+     * @param <T>
+     * @return
+     */
     @Nullable
     private <T> List<T> fetchItems(String ip, int port, String api, String type, Class<T> ruleType) {
         try {

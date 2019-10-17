@@ -47,6 +47,8 @@ public class DynamicSentinelProperty<T> implements SentinelProperty<T> {
 
     @Override
     public boolean updateValue(T newValue) {
+        //此处对与设置了来源的配置，进行按英文逗号分割解析
+
         if (isEqual(value, newValue)) {
             return false;
         }

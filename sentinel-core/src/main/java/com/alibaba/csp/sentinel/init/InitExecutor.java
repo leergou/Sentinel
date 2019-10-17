@@ -25,6 +25,8 @@ import com.alibaba.csp.sentinel.log.RecordLog;
 /**
  * Load registered init functions and execute in order.
  *
+ * 初始化注册 函数
+ *
  * @author Eric Zhao
  */
 public final class InitExecutor {
@@ -38,17 +40,26 @@ public final class InitExecutor {
      * The initialization will be executed only once.
      */
     public static void doInit() {
+        //保证只初始化一次
         if (!initialized.compareAndSet(false, true)) {
             return;
         }
         try {
+            //基于JVM原生的ServiceLoader（一个服务提供加载工具类，一个服务是一组接口类，服务提供者是服务的具体实现）
+            //提供者的类通常实现接口并对服务本身定义的类进行子类化，
+            //在 资源目录 classpath:/ resources/META-INF/services/接口全路径名作为filename;
+            //Sentinel一共在5个子工程中配置了(不包括demo)，具体参看学习笔记
             ServiceLoader<InitFunc> loader = ServiceLoader.load(InitFunc.class);
             List<OrderWrapper> initList = new ArrayList<OrderWrapper>();
+            //对load出来的所有InitFunc类型的对象进行排序，此处的排序主要依赖与在InitFunc具体子类上的@InitOrder注解value值从小到大进行排序
             for (InitFunc initFunc : loader) {
                 RecordLog.info("[InitExecutor] Found init func: " + initFunc.getClass().getCanonicalName());
+                //进行排序并进行一次OrderWrapper包装
                 insertSorted(initList, initFunc);
             }
+            //对排序后的InitFunc进行初始化 init执行
             for (OrderWrapper w : initList) {
+                //执行每一个InitFunc具体子类的init方法
                 w.func.init();
                 RecordLog.info(String.format("[InitExecutor] Executing %s with order %d",
                     w.func.getClass().getCanonicalName(), w.order));

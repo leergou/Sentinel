@@ -56,6 +56,7 @@ public class ApiCommandHandler implements CommandHandler<String> {
             obj.put("desc", desc);
             array.add(obj);
         }
+        //返回所有的CommandHandler类型的api名称和描述
         return CommandResponse.ofSuccess(array.toJSONString());
     }
 

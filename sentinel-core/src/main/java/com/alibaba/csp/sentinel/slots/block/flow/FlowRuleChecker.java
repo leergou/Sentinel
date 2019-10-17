@@ -125,7 +125,8 @@ public class FlowRuleChecker {
             }
 
             return selectReferenceNode(rule, context, node);
-        } else if (RuleConstant.LIMIT_APP_DEFAULT.equals(limitApp)) {
+        }//limitApp-针对来源
+        else if (RuleConstant.LIMIT_APP_DEFAULT.equals(limitApp)) {
             if (strategy == RuleConstant.STRATEGY_DIRECT) {
                 // Return the cluster node.
                 return node.getClusterNode();

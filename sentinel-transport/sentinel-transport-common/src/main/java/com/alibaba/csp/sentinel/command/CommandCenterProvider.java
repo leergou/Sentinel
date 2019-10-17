@@ -34,6 +34,8 @@ public final class CommandCenterProvider {
     }
 
     private static void resolveInstance() {
+        //此处通过spi load的是 SimpleHttpCommandCenter，springCloud Alibaba Sentinel中的transport模块只引入了 sentinel-transport-simple-http
+        //注意点：在sentinel-transport-simple-http中的SimpleHttpCommandCenter并没有添加 @SpiOrder注解，另一个CommandCenter的子类NettyHttpCommandCenter是有添加的
         CommandCenter resolveCommandCenter = SpiLoader.loadHighestPriorityInstance(CommandCenter.class);
 
         if (resolveCommandCenter == null) {

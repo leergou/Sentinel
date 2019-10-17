@@ -36,6 +36,9 @@ import com.alibaba.csp.sentinel.transport.util.HttpCommandUtils;
 import com.alibaba.csp.sentinel.util.StringUtil;
 
 /***
+ *
+ * 主要处理对该  ip:port 发起请求时，对本次请求进行封装。
+ * 获取 socket数据并进一步处理，
  * The task handles incoming command request in HTTP protocol.
  *
  * @author youji.zj
@@ -65,7 +68,18 @@ public class HttpEventTask implements Runnable {
         PrintWriter printWriter = null;
         try {
             long start = System.currentTimeMillis();
+            //转换成字符流 (BufferedReader引入了缓冲机制)
             in = new BufferedReader(new InputStreamReader(socket.getInputStream(), SentinelConfig.charset()));
+             /*
+             >>站在socket的编码处的位置来看(客户端)
+             socket.getInputStream()：获取的是从服务器端发回的数据。
+             socket.getOutputStream()：发送给服务器端的数据。
+
+             >>站在SocketServer的编码处的位置来看(服务端)
+             socket.getInputStream()： 获取客户端(主要是 sentinel-dashboard或用户通过浏览器访问) 发送给服务器端的数据流
+             socket.getOutputStream()： 输出流，引入sentinel-core的业务应用将数据发给客户端。
+                                        如业务应用A ，通过浏览器访问 xxx:8019/apis  ，此时将所有apis结果通过这个outputStream发送给浏览器
+             */
             OutputStream outputStream = socket.getOutputStream();
 
             printWriter = new PrintWriter(
@@ -75,7 +89,7 @@ public class HttpEventTask implements Runnable {
             CommandCenterLog.info("[SimpleHttpCommandCenter] socket income: " + line
                 + "," + socket.getInetAddress());
             CommandRequest request = parseRequest(line);
-            
+
             if (line.length() > 4 && StringUtil.equalsIgnoreCase("POST", line.substring(0, 4))) {
                 // Deal with post method
                 // Now simple-http only support form-encoded post request.
@@ -95,7 +109,7 @@ public class HttpEventTask implements Runnable {
                         parseParams(postData, request);
                         break;
                     }
-                    
+
                     bodyLine = in.readLine();
                     if (bodyLine == null) {
                         break;
@@ -137,11 +151,13 @@ public class HttpEventTask implements Runnable {
                 badRequest(printWriter, "Invalid command");
                 return;
             }
-
+            //此处通过commandName获取具体的 Commandler 对象
             // Find the matching command handler.
             CommandHandler<?> commandHandler = SimpleHttpCommandCenter.getHandler(commandName);
             if (commandHandler != null) {
+                //根据从请求参数中解析出来的具体commandName，找到对应的Handler，然后执行该Handler获取数据
                 CommandResponse<?> response = commandHandler.handle(request);
+                //处理 handler 执行 handle 后返回的结果
                 handleResponse(response, printWriter, outputStream);
             } else {
                 // No matching command handler.
@@ -184,6 +200,13 @@ public class HttpEventTask implements Runnable {
         }
     }
 
+    /**
+     * 处理 某个CommonHandler.handle()的运行结果给到调用者
+     * @param response
+     * @param printWriter
+     * @param rawOutputStream
+     * @throws Exception
+     */
     private void handleResponse(CommandResponse response, /*@NonNull*/ final PrintWriter printWriter,
         /*@NonNull*/ final OutputStream rawOutputStream) throws Exception {
         if (response.isSuccess()) {

@@ -101,4 +101,8 @@ public abstract class AbstractRule implements Rule {
         }
         return result;
     }
+
+    public AbstractRule copy(AbstractRule sourceRule){
+        return null;
+    }
 }
